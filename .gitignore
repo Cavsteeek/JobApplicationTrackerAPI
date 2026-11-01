@@ -21,3 +21,4 @@ target/
 *.ipr
 
 *.env
+*.http
