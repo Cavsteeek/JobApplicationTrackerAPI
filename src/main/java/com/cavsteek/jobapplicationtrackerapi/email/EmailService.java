@@ -10,15 +10,14 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-
 public class EmailService {
 
     private final RestClient client;
     private final BrevoProperties props;
 
-    public EmailService(RestClient.Builder builder, BrevoProperties props) {
+    public EmailService(BrevoProperties props) {
         this.props = props;
-        this.client = builder
+        this.client = RestClient.builder()
                 .baseUrl("https://api.brevo.com/v3")
                 .defaultHeader("api-key", props.apiKey())
                 .build();
