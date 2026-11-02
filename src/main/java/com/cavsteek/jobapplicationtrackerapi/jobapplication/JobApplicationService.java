@@ -1,9 +1,7 @@
 package com.cavsteek.jobapplicationtrackerapi.jobapplication;
 
 import com.cavsteek.jobapplicationtrackerapi.common.ResourceNotFoundException;
-import com.cavsteek.jobapplicationtrackerapi.jobapplication.dto.CreateJobApplicationRequest;
-import com.cavsteek.jobapplicationtrackerapi.jobapplication.dto.JobApplicationResponse;
-import com.cavsteek.jobapplicationtrackerapi.jobapplication.dto.UpdateJobApplicationRequest;
+import com.cavsteek.jobapplicationtrackerapi.jobapplication.dto.*;
 import com.cavsteek.jobapplicationtrackerapi.user.User;
 import com.cavsteek.jobapplicationtrackerapi.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,11 +10,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class JobApplicationService {
 
     private final JobApplicationRepository jobApplicationRepository;
+    private final StatusHistoryRepository statusHistoryRepository;
     private final UserRepository userRepository;
 
     @Transactional
@@ -33,7 +34,9 @@ public class JobApplicationService {
                 .notes(req.notes())
                 .build();
 
-        return JobApplicationResponse.from(jobApplicationRepository.save(application));
+        JobApplication saved = jobApplicationRepository.save(application);
+        recordHistory(saved, null, saved.getStatus());
+        return JobApplicationResponse.from(saved);
     }
 
     @Transactional(readOnly = true)
@@ -64,8 +67,38 @@ public class JobApplicationService {
     }
 
     @Transactional
+    public JobApplicationResponse updateStatus(Long userId, Long id, UpdateStatusRequest req) {
+        JobApplication application = findOwned(userId, id);
+        ApplicationStatus oldStatus = application.getStatus();
+
+        if (oldStatus == req.status()) {
+            return JobApplicationResponse.from(application);
+        }
+
+        application.setStatus(req.status());
+        recordHistory(application, oldStatus, req.status());
+        return JobApplicationResponse.from(jobApplicationRepository.saveAndFlush(application));
+    }
+
+    @Transactional(readOnly = true)
+    public List<StatusHistoryResponse> history(Long userId, Long id) {
+        findOwned(userId, id);
+        return statusHistoryRepository.findByApplicationIdOrderByChangedAtDesc(id).stream()
+                .map(StatusHistoryResponse::from)
+                .toList();
+    }
+
+    @Transactional
     public void delete(Long userId, Long id) {
         jobApplicationRepository.delete(findOwned(userId, id));
+    }
+
+    private void recordHistory(JobApplication application, ApplicationStatus oldStatus, ApplicationStatus newStatus) {
+        statusHistoryRepository.save(StatusHistory.builder()
+                .application(application)
+                .oldStatus(oldStatus)
+                .newStatus(newStatus)
+                .build());
     }
 
     private JobApplication findOwned(Long userId, Long id) {
