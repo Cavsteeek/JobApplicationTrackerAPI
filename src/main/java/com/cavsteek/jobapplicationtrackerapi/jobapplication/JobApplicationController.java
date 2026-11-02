@@ -1,8 +1,6 @@
 package com.cavsteek.jobapplicationtrackerapi.jobapplication;
 
-import com.cavsteek.jobapplicationtrackerapi.jobapplication.dto.CreateJobApplicationRequest;
-import com.cavsteek.jobapplicationtrackerapi.jobapplication.dto.JobApplicationResponse;
-import com.cavsteek.jobapplicationtrackerapi.jobapplication.dto.UpdateJobApplicationRequest;
+import com.cavsteek.jobapplicationtrackerapi.jobapplication.dto.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/applications")
@@ -56,6 +55,17 @@ public class JobApplicationController {
     public JobApplicationResponse update(@PathVariable Long id,
                                          @Valid @RequestBody UpdateJobApplicationRequest req) {
         return service.update(DEV_USER_ID, id, req);
+    }
+
+    @PatchMapping("/{id}/status")
+    public JobApplicationResponse updateStatus(@PathVariable Long id,
+                                               @Valid @RequestBody UpdateStatusRequest req) {
+        return service.updateStatus(DEV_USER_ID, id, req);
+    }
+
+    @GetMapping("/{id}/history")
+    public List<StatusHistoryResponse> history(@PathVariable Long id) {
+        return service.history(DEV_USER_ID, id);
     }
 
     @DeleteMapping("/{id}")
