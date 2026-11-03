@@ -1,0 +1,1 @@
+alter table applications add column last_reminded_at timestamptz;

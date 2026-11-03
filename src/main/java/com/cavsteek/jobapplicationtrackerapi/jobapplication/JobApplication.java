@@ -53,4 +53,7 @@ public class JobApplication {
     @UpdateTimestamp
     @Column(nullable = false)
     private Instant lastUpdated;
+
+    @Column
+    private Instant lastRemindedAt;
 }
