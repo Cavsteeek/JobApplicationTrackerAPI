@@ -22,3 +22,5 @@ target/
 
 *.env
 *.http
+
+*.env.json
