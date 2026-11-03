@@ -340,4 +340,19 @@ class ApiIntegrationTest {
                                 """))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void list_withUnknownSortField_returns400() throws Exception {
+        String token = registerAndGetToken(uniqueEmail());
+
+        mockMvc.perform(get("/api/applications?sort=bogus")
+                        .header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void apiDocs_arePublic() throws Exception {
+        mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk());
+    }
 }

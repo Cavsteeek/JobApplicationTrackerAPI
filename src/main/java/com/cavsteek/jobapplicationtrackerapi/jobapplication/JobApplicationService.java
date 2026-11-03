@@ -1,5 +1,6 @@
 package com.cavsteek.jobapplicationtrackerapi.jobapplication;
 
+import com.cavsteek.jobapplicationtrackerapi.common.InvalidRequestException;
 import com.cavsteek.jobapplicationtrackerapi.common.ResourceNotFoundException;
 import com.cavsteek.jobapplicationtrackerapi.jobapplication.dto.*;
 import com.cavsteek.jobapplicationtrackerapi.user.User;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +43,7 @@ public class JobApplicationService {
 
     @Transactional(readOnly = true)
     public Page<JobApplicationResponse> list(Long userId, ApplicationStatus status, Pageable pageable) {
+        validateSort(pageable);
         Page<JobApplication> page = (status == null)
                 ? jobApplicationRepository.findByUserId(userId, pageable)
                 : jobApplicationRepository.findByUserIdAndStatus(userId, status, pageable);
@@ -104,5 +107,17 @@ public class JobApplicationService {
     private JobApplication findOwned(Long userId, Long id) {
         return jobApplicationRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Application not found: " + id));
+    }
+
+    private static final Set<String> SORTABLE_FIELDS =
+            Set.of("appliedDate", "company", "role", "status", "createdAt", "lastUpdated");
+
+    private void validateSort(Pageable pageable) {
+        pageable.getSort().forEach(order -> {
+            if (!SORTABLE_FIELDS.contains(order.getProperty())) {
+                throw new InvalidRequestException(
+                        "Cannot sort by '" + order.getProperty() + "'. Allowed: " + SORTABLE_FIELDS);
+            }
+        });
     }
 }

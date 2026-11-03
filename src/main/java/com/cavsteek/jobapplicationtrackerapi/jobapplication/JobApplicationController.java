@@ -1,8 +1,11 @@
 package com.cavsteek.jobapplicationtrackerapi.jobapplication;
 
 import com.cavsteek.jobapplicationtrackerapi.jobapplication.dto.*;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -17,6 +20,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/applications")
 @RequiredArgsConstructor
+@Tag(name = "Applications")
+@SecurityRequirement(name = "bearerAuth")
 public class JobApplicationController {
 
     private final JobApplicationService service;
@@ -32,6 +37,7 @@ public class JobApplicationController {
     public Page<JobApplicationResponse> list(
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(required = false) ApplicationStatus status,
+            @ParameterObject
             @PageableDefault(size = 20, sort = "appliedDate", direction = Sort.Direction.DESC) Pageable pageable) {
         return service.list(userId(jwt), status, pageable);
     }
