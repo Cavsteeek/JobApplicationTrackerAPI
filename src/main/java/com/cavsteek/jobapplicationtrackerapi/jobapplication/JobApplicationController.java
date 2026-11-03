@@ -8,11 +8,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -20,57 +19,59 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JobApplicationController {
 
-    // TODO replace with the logged-in user once auth exists
-    private static final Long DEV_USER_ID = 1L;
-
     private final JobApplicationService service;
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public JobApplicationResponse create(@Valid @RequestBody CreateJobApplicationRequest req) {
-        return service.create(DEV_USER_ID, req);
+    public JobApplicationResponse create(@AuthenticationPrincipal Jwt jwt,
+                                         @Valid @RequestBody CreateJobApplicationRequest req) {
+        return service.create(userId(jwt), req);
     }
-
-/*    @PostMapping
-    public ResponseEntity<JobApplicationResponse> create(@Valid @RequestBody CreateJobApplicationRequest req) {
-        JobApplicationResponse created = service.create(DEV_USER_ID, req);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                .path("/{id}").buildAndExpand(created.id()).toUri();
-        return ResponseEntity.created(location).body(created);
-    }*/
 
     @GetMapping
     public Page<JobApplicationResponse> list(
+            @AuthenticationPrincipal Jwt jwt,
             @RequestParam(required = false) ApplicationStatus status,
             @PageableDefault(size = 20, sort = "appliedDate", direction = Sort.Direction.DESC) Pageable pageable) {
-        return service.list(DEV_USER_ID, status, pageable);
+        return service.list(userId(jwt), status, pageable);
     }
 
     @GetMapping("/{id}")
-    public JobApplicationResponse get(@PathVariable Long id) {
-        return service.get(DEV_USER_ID, id);
+    public JobApplicationResponse get(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
+        return service.get(userId(jwt), id);
     }
 
     @PutMapping("/{id}")
-    public JobApplicationResponse update(@PathVariable Long id,
+    public JobApplicationResponse update(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id,
                                          @Valid @RequestBody UpdateJobApplicationRequest req) {
-        return service.update(DEV_USER_ID, id, req);
+        return service.update(userId(jwt), id, req);
     }
 
     @PatchMapping("/{id}/status")
-    public JobApplicationResponse updateStatus(@PathVariable Long id,
+    public JobApplicationResponse updateStatus(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id,
                                                @Valid @RequestBody UpdateStatusRequest req) {
-        return service.updateStatus(DEV_USER_ID, id, req);
+        return service.updateStatus(userId(jwt), id, req);
     }
 
     @GetMapping("/{id}/history")
-    public List<StatusHistoryResponse> history(@PathVariable Long id) {
-        return service.history(DEV_USER_ID, id);
+    public List<StatusHistoryResponse> history(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
+        return service.history(userId(jwt), id);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
-        service.delete(DEV_USER_ID, id);
+    public void delete(@AuthenticationPrincipal Jwt jwt, @PathVariable Long id) {
+        service.delete(userId(jwt), id);
+    }
+
+    private Long userId(Jwt jwt) {
+        return Long.valueOf(jwt.getSubject());
     }
 }
+/*    @PostMapping
+    public ResponseEntity<JobApplicationResponse> create(@AuthenticationPrincipal Jwt jwt, @Valid @RequestBody CreateJobApplicationRequest req) {
+        JobApplicationResponse created = service.create(userId(jwt), req);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}").buildAndExpand(created.id()).toUri();
+        return ResponseEntity.created(location).body(created);
+    }*/

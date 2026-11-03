@@ -1,4 +1,3 @@
 package com.cavsteek.jobapplicationtrackerapi.auth.dto;
 
-public class AuthResponse {
-}
+public record AuthResponse(String accessToken, String tokenType, long expiresInSeconds) {}
