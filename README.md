@@ -111,11 +111,6 @@ src/main/java/.../
 src/main/resources/db/migration/   Flyway migrations
 ```
 
-## Roadmap
-
-- Partial updates with `PATCH /api/applications/{id}`
-- Refresh tokens and login rate limiting
-- Web frontend
 
 ## Author
 
