@@ -31,7 +31,7 @@ cp .env.example .env        # then edit .env and fill in your values
 docker compose up --build
 ```
 
-The API is now at `http://localhost:8080` and the docs at `http://localhost:8080/swagger-ui.html`.
+The API is now at `https://jobapplicationtrackerapi.up.railway.app` and the docs at `https://jobapplicationtrackerapi.up.railway.app/swagger-ui.html`.
 
 To try it:
 1. `POST /api/auth/register` to create an account and get a token.
